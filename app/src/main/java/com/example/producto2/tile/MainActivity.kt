@@ -14,7 +14,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -29,13 +31,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
 import com.example.producto2.R
+import java.time.LocalDate
+import java.time.LocalTime
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,7 +83,7 @@ fun FondoConDegradadoRadial() {
                             Color.Black
                         ),
                         center = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
-                        radius = 500f
+                        radius = 450f
                     )
                 )
         )
@@ -85,21 +91,28 @@ fun FondoConDegradadoRadial() {
 }
 @Composable
 fun Portada(navController: NavController) {
+    val currentDate = LocalDate.now()
+    val year = currentDate.year
+    val month = currentDate.monthValue
+    val day = currentDate.dayOfMonth
+    val currentTime = LocalTime.now()
+    val min = currentTime.minute
+    val hour = currentTime.hour
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         FondoConDegradadoRadial()
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Aplicando un degradado al texto "Hola Ivan"
             Text(
-                text = "Hola Ivan",
+                text = "Ivan",
                 color = Color.White,
                 fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Right,
                 modifier = Modifier
                     .padding(16.dp)
                     .background(
@@ -112,6 +125,48 @@ fun Portada(navController: NavController) {
                             )
                         )
                     )
+            )
+
+        }
+    }
+    Box (
+        modifier = Modifier.fillMaxSize()
+    ){
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Mostrar la fecha del sistema
+            Text(
+                text = "Date: $day/$month/$year",
+                color = Color.White,
+                fontWeight = FontWeight.Light,
+                fontSize = (10.sp),
+                textAlign = TextAlign.Right,
+                modifier = Modifier.padding(20.dp)
+            )
+        }
+    }
+
+    Box (
+        modifier = Modifier.fillMaxSize()
+    ){
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Mostrar la fecha del sistema
+            Text(
+                text = "$hour:$min",
+                color = Color.White,
+                fontWeight = FontWeight.Light,
+                fontSize = (50.sp),
+                textAlign = TextAlign.Right,
+                modifier = Modifier.padding(20.dp)
             )
         }
     }
