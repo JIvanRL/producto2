@@ -222,7 +222,7 @@ fun Portada(navController: NavController) {
                 fontWeight = FontWeight.Light,
                 fontSize = 60.sp,
                 textAlign = TextAlign.Right,
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(1.dp)
             )
         }
     }
