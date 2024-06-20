@@ -47,7 +47,6 @@ android {
         }
     }
 }
-
 dependencies {
 
     implementation(libs.play.services.wearable)
@@ -67,8 +66,13 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.recyclerview)
     implementation(libs.material)
+    implementation(libs.material3.android)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.emoji2.emojipicker)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+    implementation(libs.androidx.compose.material.material)
 }

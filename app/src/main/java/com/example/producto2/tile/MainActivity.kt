@@ -4,6 +4,8 @@
  * changes to the libraries and their usages.
  */
 
+@file:Suppress("DEPRECATION")
+
 package com.example.producto2.tile
 
 import android.os.Bundle
@@ -15,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,7 +101,7 @@ fun FondoConDegradadoRadial(showImage: Boolean = true) {
                             Color.Black.copy(alpha = 0.5f),
                             Color.Black
                         ),
-                        center = androidx.compose.ui.geometry.Offset(0.5f, 0.5f),
+                        center = Offset(0.5f, 0.5f),
                         radius = 450f
                     )
                 )
@@ -193,18 +200,19 @@ fun Portada(navController: NavController) {
                     }
                 )
                 Button(
-                    onClick = { navController.navigate("RutaDos") },
+                    onClick = { navController.navigate("RutaCuatro") },
                     modifier = Modifier.size(25.dp), // Tamaño del botón ajustable
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
                     shape = CircleShape,
                     content = {
                         Image(
-                            painter = painterResource(id = R.drawable.musica),
-                            contentDescription = "Icono botón 1",
+                            painter = painterResource(id = R.drawable.menu),
+                            contentDescription = "Icono botón 3",
                             modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
                         )
                     }
                 )
+
             }
 
             // Mostrar la hora del sistema
@@ -394,9 +402,48 @@ fun Golback(navController: NavController) {
 }
 
 @Composable
-fun Menu(navController: NavController){
-Text(text = "Hola")
+fun Menu(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(15.dp)
+        ) {
+            items(5) { index ->
+                ButtonItem(
+                    icon = Icons.Rounded.ArrowBack,
+                    contentDescription = "Back",
+                    onClick = { navController.navigateUp() }
+                )
+            }
+        }
+    }
 }
+
+@Composable
+fun ButtonItem(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp) // Tamaño del icono ajustado aquí
+        )
+    }
+}
+
+
+
 
 @Composable
 fun Navegacion() {
@@ -405,9 +452,11 @@ fun Navegacion() {
         composable("RutaUno") { Portada(navController) }
         composable("RutaDos") { ScreenApps(navController) }
         composable("RutaTres") { Golback(navController) }
-        composable("RutaTre4") { Menu(navController) }
+        composable("RutaCuatro") { Menu(navController) }
     }
 }
+
+
 
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
