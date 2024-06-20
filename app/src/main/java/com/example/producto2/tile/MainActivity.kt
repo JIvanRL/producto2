@@ -231,7 +231,8 @@ fun ScreenApps(navController: NavController) {
     ) {
         FondoConDegradadoRadial(showImage = false) // No muestra la imagen en ScreenApps
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
@@ -394,7 +395,7 @@ fun Golback(navController: NavController) {
 
 @Composable
 fun Menu(navController: NavController){
-
+Text(text = "Hola")
 }
 
 @Composable
