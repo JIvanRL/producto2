@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_image"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/_12_33"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/tvStationName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chef Table Radio"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_below="@id/tvCurrentTime"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/tvArtistName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/eli_kulp"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/tvStationName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="16dp">
+
+        <ImageButton
+            android:id="@+id/btnPrevious"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_previous"
+            android:contentDescription="@string/previous"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_play_pause"
+            android:contentDescription="@string/play_pause"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/btnNext"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_next"
+            android:contentDescription="@string/next"
+            android:tint="@android:color/white"
+            tools:ignore="UseAppTint" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="16dp">
+
+        <ImageButton
+            android:id="@+id/btnFavorite"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_favorite_border"
+            android:contentDescription="@string/favorite"
+            android:tint="@android:color/white"
+            tools:ignore="UseAppTint" />
+
+        <ImageButton
+            android:id="@+id/btnVolume"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_volume"
+            android:contentDescription="@string/volume"
+            android:tint="@android:color/white"
+            android:layout_marginStart="16dp"
+            tools:ignore="UseAppTint" />
+    </LinearLayout>
+
+</RelativeLayout>

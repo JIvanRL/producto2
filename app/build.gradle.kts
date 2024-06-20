@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.watchface.complications.data.source.ktx)
     implementation(libs.navigation.runtime.ktx)
     implementation(libs.navigation.compose)
+    implementation(libs.recyclerview)
+    implementation(libs.material)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
