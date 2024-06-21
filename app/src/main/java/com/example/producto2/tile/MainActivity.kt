@@ -57,7 +57,10 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import com.example.producto2.R
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.TextStyle
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +105,7 @@ fun FondoConDegradadoRadial(showImage: Boolean = true) {
                             Color.Black
                         ),
                         center = Offset(0.5f, 0.5f),
-                        radius = 450f
+                        radius = 600f
                     )
                 )
         )
@@ -115,9 +118,13 @@ fun Portada(navController: NavController) {
     val year = currentDate.year
     val month = currentDate.monthValue
     val day = currentDate.dayOfMonth
-    val currentTime = LocalTime.now()
-    val min = currentTime.minute
+    val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+
+    val currentTime = LocalDateTime.now()
     val hour = currentTime.hour
+    val minute = currentTime.minute
+    val amPm = if (hour < 12) "AM" else "PM"
+    val hour12 = if (hour > 12) hour - 12 else if (hour == 0) 12 else hour
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -149,8 +156,6 @@ fun Portada(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-
-
         // Mostrar la fecha del sistema
         Column(
             modifier = Modifier
@@ -159,13 +164,14 @@ fun Portada(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Mostrar la fecha con nombre del día de la semana en español
             Text(
-                text = "Date: $day/$month/$year",
+                text = "$dayOfWeek, $day/$month/$year",
                 color = Color.White,
                 fontWeight = FontWeight.Light,
                 fontSize = 10.sp,
-                textAlign = TextAlign.Right,
-                modifier = Modifier.padding(20.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(10.dp)
             )
             Row (
                 modifier = Modifier
@@ -214,15 +220,14 @@ fun Portada(navController: NavController) {
                 )
 
             }
-
-            // Mostrar la hora del sistema
+// Mostrar la hora con formato de 12 horas y AM/PM en español
             Text(
-                text = "$hour:$min",
+                text = String.format("%02d:%02d %s", hour12, minute, amPm),
                 color = Color.White,
                 fontWeight = FontWeight.Light,
-                fontSize = 60.sp,
-                textAlign = TextAlign.Right,
-                modifier = Modifier.padding(1.dp)
+                fontSize = 50.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(5.dp)
             )
         }
     }
