@@ -17,7 +17,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,10 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +33,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,13 +46,17 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import com.example.producto2.R
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.TextStyle
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,12 +101,13 @@ fun FondoConDegradadoRadial(showImage: Boolean = true) {
                             Color.Black
                         ),
                         center = Offset(0.5f, 0.5f),
-                        radius = 450f
+                        radius = 600f
                     )
                 )
         )
     }
 }
+
 
 @Composable
 fun Portada(navController: NavController) {
@@ -115,9 +115,13 @@ fun Portada(navController: NavController) {
     val year = currentDate.year
     val month = currentDate.monthValue
     val day = currentDate.dayOfMonth
-    val currentTime = LocalTime.now()
-    val min = currentTime.minute
+    val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
+
+    val currentTime = LocalDateTime.now()
     val hour = currentTime.hour
+    val minute = currentTime.minute
+    val amPm = if (hour < 12) "AM" else "PM"
+    val hour12 = if (hour > 12) hour - 12 else if (hour == 0) 12 else hour
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -149,8 +153,6 @@ fun Portada(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-
-
         // Mostrar la fecha del sistema
         Column(
             modifier = Modifier
@@ -159,13 +161,14 @@ fun Portada(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Mostrar la fecha con nombre del día de la semana en español
             Text(
-                text = "Date: $day/$month/$year",
+                text = "$dayOfWeek, $day/$month/$year",
                 color = Color.White,
                 fontWeight = FontWeight.Light,
                 fontSize = 10.sp,
-                textAlign = TextAlign.Right,
-                modifier = Modifier.padding(20.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(10.dp)
             )
             Row (
                 modifier = Modifier
@@ -214,15 +217,14 @@ fun Portada(navController: NavController) {
                 )
 
             }
-
-            // Mostrar la hora del sistema
+// Mostrar la hora con formato de 12 horas y AM/PM en español
             Text(
-                text = "$hour:$min",
+                text = String.format("%02d:%02d %s", hour12, minute, amPm),
                 color = Color.White,
                 fontWeight = FontWeight.Light,
-                fontSize = 60.sp,
-                textAlign = TextAlign.Right,
-                modifier = Modifier.padding(1.dp)
+                fontSize = 50.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(5.dp)
             )
         }
     }
@@ -237,7 +239,7 @@ fun ScreenApps(navController: NavController) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        FondoConDegradadoRadial(showImage = false) // No muestra la imagen en ScreenApps
+        FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -245,7 +247,7 @@ fun ScreenApps(navController: NavController) {
                     Brush.radialGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Magenta.copy(alpha = 0.10f),
+                            Color.Black.copy(alpha = 0.10f),
                             Color.Black
                         ),
                         center = Offset(0.5f, 0.5f), // Coordenadas del centro del degradado
@@ -356,17 +358,20 @@ fun ScreenApps(navController: NavController) {
 }
 @Composable
 fun Golback(navController: NavController) {
+
     Box(
+
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
     ) {
+        FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .size(200.dp)
                 .clip(CircleShape)
-                .background(Color.Black)
+
         ) {
             Text(
                 text = "Power Yoga",
@@ -401,46 +406,75 @@ fun Golback(navController: NavController) {
     }
 }
 
+
 @Composable
 fun Menu(navController: NavController) {
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(1.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(15.dp)
-        ) {
-            items(5) { index ->
-                ButtonItem(
-                    icon = Icons.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = { navController.navigateUp() }
+        ScalingLazyColumn {
+            item { // Usar ButtonItem aquí
+                Galeria(
+                    icon = painterResource(id = R.drawable.galeria),
+                    contentDescription = "Icono botón 3",
+                    text = "Galeria",
+                    onClick = { /* Handle button click */ }
+                ) }
+            item {
+// Usar ButtonItem aquí
+                Agenda(
+                    icon = painterResource(id = R.drawable.agenda),
+                    contentDescription = "Icono botón 3",
+                    text = "Agenda",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Agenda(
+                    icon = painterResource(id = R.drawable.agenda),
+                    contentDescription = "Icono botón 3",
+                    text = "Agenda",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Agenda(
+                    icon = painterResource(id = R.drawable.agenda),
+                    contentDescription = "Icono botón 3",
+                    text = "Agenda",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Agenda(
+                    icon = painterResource(id = R.drawable.agenda),
+                    contentDescription = "Icono botón 3",
+                    text = "Agenda",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Agenda(
+                    icon = painterResource(id = R.drawable.agenda),
+                    contentDescription = "Icono botón 3",
+                    text = "Agenda",
+                    onClick = { /* Handle button click */ }
                 )
             }
         }
     }
 }
 
-@Composable
-fun ButtonItem(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(20.dp) // Tamaño del icono ajustado aquí
-        )
-    }
-}
+
 
 
 
