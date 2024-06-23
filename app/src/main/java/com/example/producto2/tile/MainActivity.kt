@@ -25,8 +25,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +55,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.example.producto2.R
 import java.time.LocalDate
@@ -57,6 +63,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -419,6 +426,12 @@ fun Menu(navController: NavController) {
     ) {
         ScalingLazyColumn {
             item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
+            item { // Usar ButtonItem aquí
                 Galeria(
                     icon = painterResource(id = R.drawable.galeria),
                     contentDescription = "Icono botón 3",
@@ -436,49 +449,181 @@ fun Menu(navController: NavController) {
             }
             item {
 // Usar ButtonItem aquí
-                Agenda(
-                    icon = painterResource(id = R.drawable.agenda),
+                Correr(
+                    icon = painterResource(id = R.drawable.corriendo),
                     contentDescription = "Icono botón 3",
-                    text = "Agenda",
+                    text = "Correr",
                     onClick = { /* Handle button click */ }
                 )
             }
             item {
 // Usar ButtonItem aquí
-                Agenda(
-                    icon = painterResource(id = R.drawable.agenda),
+                Calculadora(
+                    icon = painterResource(id = R.drawable.calculadora),
                     contentDescription = "Icono botón 3",
-                    text = "Agenda",
+                    text = "Calculadora",
+                    onClick = { navController.navigate("RutaCinco") }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Linterna(
+                    icon = painterResource(id = R.drawable.foco),
+                    contentDescription = "Icono botón 3",
+                    text = "Linterna",
                     onClick = { /* Handle button click */ }
                 )
             }
             item {
 // Usar ButtonItem aquí
-                Agenda(
-                    icon = painterResource(id = R.drawable.agenda),
+                Pasos(
+                    icon = painterResource(id = R.drawable.paso),
                     contentDescription = "Icono botón 3",
-                    text = "Agenda",
+                    text = "Pasos",
                     onClick = { /* Handle button click */ }
                 )
             }
             item {
 // Usar ButtonItem aquí
-                Agenda(
-                    icon = painterResource(id = R.drawable.agenda),
+                Configuracion(
+                    icon = painterResource(id = R.drawable.configuracion),
                     contentDescription = "Icono botón 3",
-                    text = "Agenda",
+                    text = "Configuración",
                     onClick = { /* Handle button click */ }
                 )
+            }
+            item {
+// Usar ButtonItem aquí
+                Facebook(
+                    icon = painterResource(id = R.drawable.facebook),
+                    contentDescription = "Icono botón 3",
+                    text = "Facebook",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Whatsapp(
+                    icon = painterResource(id = R.drawable.whats),
+                    contentDescription = "Icono botón 3",
+                    text = "WhatsApp",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+            item {
+// Usar ButtonItem aquí
+                Perfil(
+                    icon = painterResource(id = R.drawable.perfil),
+                    contentDescription = "Icono botón 3",
+                    text = "Perfil",
+                    onClick = { /* Handle button click */ }
+                )
+            }
+
+            item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
+        }
+    }
+}
+@Composable
+fun Calculadora(navController: NavController) {
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
+    var caja by remember { mutableStateOf("0") }
+    var resultado by remember { mutableStateOf(0.0) }
+    var operador by remember { mutableStateOf("") }
+    var dato1 by remember { mutableStateOf(0.0) }
+    fun Presionarboton(button: String) {
+        when (button) {
+            in "0".."9", "." -> {
+                if (caja == "0") caja = button else caja += button
+            }
+
+            in listOf("/", "*", "-", "+") -> {
+                operador = button
+                dato1 = caja.toDouble()
+                caja = "0"
+            }
+
+            "=" -> {
+                resultado = when (operador) {
+                    "/" -> dato1 / caja.toDouble()
+                    "*" -> dato1 * caja.toDouble()
+                    "-" -> dato1 - caja.toDouble()
+                    "+" -> dato1 + caja.toDouble()
+                    else -> 0.0
+                }
+                caja = resultado.toString()
+            }
+
+            "C" -> {
+                resultado = 0.0
+                caja = "0"
+            }
+
+            "+/-" -> {
+                resultado = -1.0 * caja.toDouble()
+                caja = resultado.toString()
+            }
+
+            "χ²" -> {
+                resultado = caja.toDouble() * caja.toDouble()
+                caja = resultado.toString()
+            }
+
+            "√" -> {
+                resultado = sqrt(caja.toDouble())
+                caja = resultado.toString()
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Calculadora")
+        LazyColumn {
+            item { Text(text = caja, style = MaterialTheme.typography.display3) }
+            item { Renglones("7", "8", "9", "/", "C") { Presionarboton(it) } }
+            item { Renglones("4", "5", "6", "*", "+/-") { Presionarboton(it) } }
+            item { Renglones("1", "2", "3", "-", "χ²") { Presionarboton(it) } }
+            item { Renglones("0", ".", "=", "+", "√") { Presionarboton(it) } }
+
+        }
+        ScalingLazyColumn {
+            item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
+        }
+    }
+
+}
+@Composable
+fun Renglones(vararg buttons: String, onClick: (String) -> Unit){
+    Row {
+        buttons.forEach { button ->
+            Button(
+                modifier = Modifier
+                    .padding(all = 1.dp)
+                    .size(width = 28.dp, height = 25.dp),
+                onClick = {onClick(button)},
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Gray.copy(alpha = 0.4f), // Transparencia aplicada al fondo del botón
+                    contentColor = Color.White // Color del texto del botón
+                )){
+                Text(text = button)
             }
         }
     }
 }
-
-
-
-
-
-
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
@@ -487,6 +632,7 @@ fun Navegacion() {
         composable("RutaDos") { ScreenApps(navController) }
         composable("RutaTres") { Golback(navController) }
         composable("RutaCuatro") { Menu(navController) }
+        composable("RutaCinco") { Calculadora(navController) }
     }
 }
 
