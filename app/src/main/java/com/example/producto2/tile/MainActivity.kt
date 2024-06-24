@@ -52,11 +52,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
 import com.example.producto2.R
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -210,19 +213,31 @@ fun Portada(navController: NavController) {
                     }
                 )
                 Button(
-                    onClick = { navController.navigate("RutaCuatro") },
+                        onClick = { navController.navigate("RutaCuatro") },
+                modifier = Modifier.size(25.dp), // Tamaño del botón ajustable
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
+                shape = CircleShape,
+                content = {
+                    Image(
+                        painter = painterResource(id = R.drawable.menu),
+                        contentDescription = "Icono botón 3",
+                        modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
+                    )
+                }
+                )
+                Button(
+                    onClick = { navController.navigate("RutaSeis") },
                     modifier = Modifier.size(25.dp), // Tamaño del botón ajustable
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                     shape = CircleShape,
                     content = {
                         Image(
-                            painter = painterResource(id = R.drawable.menu),
+                            painter = painterResource(id = R.drawable.baseline_expand_more_24),
                             contentDescription = "Icono botón 3",
                             modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
                         )
                     }
                 )
-
             }
 // Mostrar la hora con formato de 12 horas y AM/PM en español
             Text(
@@ -519,7 +534,13 @@ fun Menu(navController: NavController) {
                     onClick = { /* Handle button click */ }
                 )
             }
-
+            item { // Usar ButtonItem aquí
+                Contacto(
+                    icon = painterResource(id = R.drawable.contacto),
+                    contentDescription = "Icono botón 3",
+                    text = "Contacto",
+                    onClick = { /* Handle button click */ }
+                )}
             item { // Usar ButtonItem aquí
                 Regresar(
                     icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
@@ -624,6 +645,92 @@ fun Renglones(vararg buttons: String, onClick: (String) -> Unit){
         }
     }
 }
+//Funtion para el notificador
+@Composable
+fun QuickSettingsScreen(navController: NavController) {
+    val isWifiEnabled = remember { mutableStateOf(false) }
+    val isBluetoothEnabled = remember { mutableStateOf(false) }
+    val isGpsEnabled = remember { mutableStateOf(false) }
+    val isAirplaneModeEnabled = remember { mutableStateOf(false) }
+    val isSoundEnabled = remember { mutableStateOf(true) }
+
+    Scaffold(
+
+        timeText = { TimeText() }
+    ) {
+        FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
+        ScalingLazyColumn(
+            state = ScalingLazyListState(),
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                Text(
+                    "Ajustes Rápidos",
+                    style = MaterialTheme.typography.title2,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingButton(
+                        iconRes = if (isWifiEnabled.value) R.drawable.baseline_wifi_24 else R.drawable.baseline_wifi_off_24,
+                        description = "WiFi",
+                        isEnabled = isWifiEnabled.value,
+                        onClick = { isWifiEnabled.value = !isWifiEnabled.value }
+                    )
+                    SettingButton(
+                        iconRes = if (isBluetoothEnabled.value) R.drawable.baseline_bluetooth_24 else R.drawable.baseline_bluetooth_disabled_24,
+                        description = "Bluetooth",
+                        isEnabled = isBluetoothEnabled.value,
+                        onClick = { isBluetoothEnabled.value = !isBluetoothEnabled.value }
+                    )
+                    SettingButton(
+                        iconRes = if (isGpsEnabled.value) R.drawable.baseline_fmd_good_24 else R.drawable.baseline_gps_off_24,
+                        description = "GPS",
+                        isEnabled = isGpsEnabled.value,
+                        onClick = { isGpsEnabled.value = !isGpsEnabled.value }
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingButton(
+                        iconRes = if (isAirplaneModeEnabled.value) R.drawable.baseline_airplanemode_active_24 else R.drawable.baseline_airplanemode_inactive_24,
+                        description = "Modo Avión",
+                        isEnabled = isAirplaneModeEnabled.value,
+                        onClick = { isAirplaneModeEnabled.value = !isAirplaneModeEnabled.value }
+                    )
+                    SettingButton(
+                        iconRes = if (isSoundEnabled.value) R.drawable.baseline_notifications_24 else R.drawable.baseline_notifications_off_24,
+                        description = "Sonido",
+                        isEnabled = isSoundEnabled.value,
+                        onClick = { isSoundEnabled.value = !isSoundEnabled.value }
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                NotificationPreview()
+            }
+            item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
+        }
+    }
+}
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
@@ -633,6 +740,7 @@ fun Navegacion() {
         composable("RutaTres") { Golback(navController) }
         composable("RutaCuatro") { Menu(navController) }
         composable("RutaCinco") { Calculadora(navController) }
+        composable("RutaSeis") { QuickSettingsScreen(navController) }
     }
 }
 
