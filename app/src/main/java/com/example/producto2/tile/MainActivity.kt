@@ -26,7 +26,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.IconButton
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +59,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
@@ -378,6 +385,7 @@ fun ScreenApps(navController: NavController) {
         }
     }
 }
+//golback
 @Composable
 fun Golback(navController: NavController) {
 
@@ -535,11 +543,18 @@ fun Menu(navController: NavController) {
                 )
             }
             item { // Usar ButtonItem aquí
+                Info(
+                    icon = painterResource(id = R.drawable.info),
+                    contentDescription = "Icono botón 3",
+                    text = "Info",
+                    onClick = { navController.navigate("InfoRute") }
+                )}
+            item { // Usar ButtonItem aquí
                 Contacto(
                     icon = painterResource(id = R.drawable.contacto),
                     contentDescription = "Icono botón 3",
                     text = "Contacto",
-                    onClick = { /* Handle button click */ }
+                    onClick = { navController.navigate("ViewContacto") }
                 )}
             item { // Usar ButtonItem aquí
                 Regresar(
@@ -731,9 +746,210 @@ fun QuickSettingsScreen(navController: NavController) {
         }
     }
 }
+// Función para agregar un nuevo contacto
+data class Contacto(val nombre: String, val numero: String)
+@Composable
+fun ViewContacto(navController: NavController) {
+    var contactos by remember { mutableStateOf(listOf<Contacto>()) }
+    val defaultImage = R.drawable.baseline_person_24
+    val defaultEdit = R.drawable.baseline_edit_24
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Contactos", style = MaterialTheme.typography.title1)
+
+        // Botón para navegar a la pantalla de agregar contacto
+        IconButton(onClick = { navController.navigate("RutaAgregarContacto") }) {
+            Icon(
+                painter = painterResource(R.drawable.baseline_add_circle_outline_24),
+                contentDescription = "Add Contact",
+                tint = Color.White // Ajusta el color del icono si es necesario
+            )
+        }
+
+        // Lista de contactos
+        ScalingLazyColumn {
+            items(contactos) { contacto ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = defaultImage),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(end = 8.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            contacto.nombre,
+                            style = MaterialTheme.typography.body1
+                        )
+                        Text(
+                            contacto.numero,
+                            style = MaterialTheme.typography.body2
+                        )
+                    }
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            painter = painterResource(id = defaultEdit),
+                            contentDescription = "Edit Contact",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+// Pantalla para agregar un contacto
+@Composable
+fun AddContactScreen(navController: NavController, onAddContact: (String, String) -> Unit) {
+    var nombre by remember { mutableStateOf("") }
+    var numero by remember { mutableStateOf("") }
+
+    // Estado para controlar la visibilidad del AlertDialog
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 32.dp), // Ajusta el padding para separar del borde y centrar verticalmente
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Agregar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Formulario para agregar contacto
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()), // Agrega scroll vertical si es necesario
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Campos de entrada para nombre y número
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
+            )
+            OutlinedTextField(
+                value = numero,
+                onValueChange = { numero = it },
+                label = { Text("Número") },
+                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
+            )
+
+            // Espacio adicional para separación visual
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón para guardar el contacto
+            Button(
+                onClick = {
+                    if (nombre.isNotBlank() && numero.isNotBlank()) {
+                        onAddContact(nombre, numero)
+                        nombre = ""
+                        numero = ""
+                        navController.popBackStack() // Regresa a la pantalla anterior (ViewContacto)
+                    } else {
+                        // Muestra el AlertDialog si los campos están vacíos
+                        showDialog = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.End) // Alinea el botón a la derecha
+            ) {
+                Text("Guardar", color = Color.White)
+            }
+        }
+    }
+
+    // AlertDialog para mostrar mensaje de campos vacíos
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            title = {
+                Text(text = "Error")
+            },
+            text = {
+                Text(text = "Por favor ingresa nombre y número")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
+
+//Info de la app
+@Composable
+fun Info(navController: NavController) {
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
+    // Datos de ejemplo sobre Wear OS
+    val wearOSInfo = listOf(
+        "Versión del sistema operativo: Wear OS 3.0",
+        "Desarrollador: Tec.Developer",
+        "Lanzamiento inicial: 18 de Junio de 2014",
+        "Última actualización: 2 de junio de 2023",
+        "Idiomas compatibles: Varios idiomas",
+        "Disponibilidad: Dispositivos compatibles con Wear OS"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Información sobre Wear OS",
+            style = MaterialTheme.typography.title1,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // Lista de información sobre Wear OS
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+
+        ) {
+            items(wearOSInfo) { info ->
+                Text(
+                    text = info,
+                    style = MaterialTheme.typography.body1,
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
+            }
+        }
+    }
+}
+
+//Navegacion de rutas
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
+
     NavHost(navController, startDestination = "RutaUno") {
         composable("RutaUno") { Portada(navController) }
         composable("RutaDos") { ScreenApps(navController) }
@@ -741,6 +957,13 @@ fun Navegacion() {
         composable("RutaCuatro") { Menu(navController) }
         composable("RutaCinco") { Calculadora(navController) }
         composable("RutaSeis") { QuickSettingsScreen(navController) }
+        composable("ViewContacto"){ViewContacto(navController)}
+        composable("RutaAgregarContacto") {
+            AddContactScreen(navController) { nombre, numero ->
+                navController.navigateUp() // Regresar a la pantalla anterior
+            }
+        }
+        composable("InfoRute"){Info(navController)}
     }
 }
 

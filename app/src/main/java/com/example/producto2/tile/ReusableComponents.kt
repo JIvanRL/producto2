@@ -426,6 +426,42 @@ fun Contacto(
     )
 }
 @Composable
+fun Info(
+    icon: Painter,
+    contentDescription: String,
+    text: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .size(200.dp, 40.dp)
+            .padding(vertical = 1.dp), // Ajusta el padding según necesidades
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Gray.copy(alpha = 0.4f), // Transparencia aplicada al fondo del botón
+            contentColor = Color.White // Color del texto del botón
+        ),
+        shape = CircleShape,
+        content = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start, // Alinea la imagen a la izquierda
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = icon,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(modifier = Modifier.width(1.dp))
+
+            }
+            Text(text = text)
+        }
+    )
+}
+@Composable
 fun Regresar(
     icon: Painter,
     contentDescription: String,
