@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -61,6 +65,7 @@ import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import com.example.producto2.R
+import com.example.tuapp.ContactosViewModel
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -77,7 +82,10 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
-            Navegacion()
+            val contactosViewModel: ContactosViewModel = viewModel() // Obtener instancia del ViewModel
+
+            // Pasar el ViewModel a la navegación o pantalla principal
+            Navegacion(contactosViewModel)
         }
     }
 }
@@ -378,6 +386,7 @@ fun ScreenApps(navController: NavController) {
         }
     }
 }
+//golback
 @Composable
 fun Golback(navController: NavController) {
 
@@ -539,7 +548,7 @@ fun Menu(navController: NavController) {
                     icon = painterResource(id = R.drawable.contacto),
                     contentDescription = "Icono botón 3",
                     text = "Contacto",
-                    onClick = { /* Handle button click */ }
+                    onClick = { navController.navigate("RutaAgregarContacto") }
                 )}
             item { // Usar ButtonItem aquí
                 Regresar(
@@ -731,8 +740,75 @@ fun QuickSettingsScreen(navController: NavController) {
         }
     }
 }
+//Agregar contactos
 @Composable
-fun Navegacion() {
+fun AddContactScreen(navController: NavController, ContactosViewModel: Any?) {
+    var nombre by remember { mutableStateOf("") }
+
+    Scaffold(
+        content = {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre del Contacto") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        if (nombre.isNotEmpty()) {
+                            // Aquí se maneja el guardado del contacto
+                            // Puedes pasar el contacto a la vista anterior o a un ViewModel
+                            navController.popBackStack() // Volver a la pantalla anterior
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Guardar")
+                }
+            }
+        }
+    )
+}
+@Composable
+fun ScreenApps(navController: NavController, contactosViewModel: ContactosViewModel) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Botón para navegar a la pantalla "RutaAgregarContacto"
+        Button(onClick = {
+            navController.navigate("RutaAgregarContacto")
+        }) {
+            Text("Agregar Contacto")
+        }
+
+        // Espacio entre el botón y la lista de contactos
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // LazyColumn para mostrar la lista de contactos
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Mostrar items de la lista de contactos desde ContactosViewModel
+            items(contactosViewModel.contactos) { contacto ->
+                Text(text = contacto.nombre) // Mostrar el nombre del contacto
+            }
+        }
+    }
+}
+
+//Navegacion de rutas
+@Composable
+fun Navegacion(ContactosViewModel: Any?) {
     val navController = rememberNavController()
     NavHost(navController, startDestination = "RutaUno") {
         composable("RutaUno") { Portada(navController) }
@@ -741,6 +817,7 @@ fun Navegacion() {
         composable("RutaCuatro") { Menu(navController) }
         composable("RutaCinco") { Calculadora(navController) }
         composable("RutaSeis") { QuickSettingsScreen(navController) }
+        composable("RutaAgregarContacto") { AddContactScreen(navController, ContactosViewModel) }
     }
 }
 
@@ -749,5 +826,8 @@ fun Navegacion() {
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    Navegacion()
+    val contactosViewModel: ContactosViewModel = viewModel() // Obtener instancia del ViewModel
+
+    // Pasar el ViewModel a la navegación o pantalla principal
+    Navegacion(contactosViewModel)
 }
