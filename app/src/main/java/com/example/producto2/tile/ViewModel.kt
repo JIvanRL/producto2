@@ -24,3 +24,60 @@ class ContactViewModel : ViewModel() {
         //contactos.remove(ContactViewModel())
     }
 }
+ clase de enumeración TimerState { EN EJECUCIÓN , EN PAUSA , RESET }
+
+ clase StopWatchViewModel: VerModel() {
+
+ valor privado _elapsedTime = MutableStateFlow ( 0L )
+ valor privado _timerState = MutableStateFlow ( TimerState.RESET )
+ val timerState = _timerState . como flujo de estado ()
+
+ formateador de valor privado = DateTimeFormatter.ofPattern( "HH:mm:ss:SSS" )
+ val stopWatchText = _tiempo transcurrido
+        . mapa { milis ->
+            LocalTime.ofNanoOfDay(millis * 1_000_000 ).format( formateador )
+ }
+        . estado en (
+ verModelScope ,
+ CompartiendoIniciado. Mientras está suscrito ( 5000 ),
+ "00:00:00:000"
+        )
+
+ en eso {
+ _timerState
+            . flatMapLatest { estado del temporizador ->
+                getTimerFlow( isRunning = timerState == TimerState. EJECUTANDO )
+ }
+            . en cada { diferenciatiempo ->
+                _tiempo transcurrido . actualizar {it + timeDiff }
+ }
+            . lanzamiento en ( viewModelScope )
+ }
+
+ divertido toggleIsRunning () {
+ cuando ( timerState . valor ) {
+ Estado del temporizador. EN EJECUCIÓN -> _timerState . actualizar { TimerState. PAUSADO }
+            Estado del temporizador. PAUSADO , Estado del temporizador. RESTABLECER -> _timerState . actualizar { TimerState. CORRER }
+        }
+ }
+
+ divertido resetTimer () {
+ _timerState . actualizar { TimerState. REINICIAR }
+        _tiempo transcurrido . actualizar { 0L }
+    }
+
+ diversión privada getTimerFlow (isRunning: booleano): Flow<Long> {
+ flujo de retorno {
+            var startMillis = System.currentTimeMillis()
+ mientras (está corriendo) {
+ val currentMillis = System.currentTimeMillis()
+ val timeDiff = if (currentMillis > startMillis) {
+ actualMillis - inicioMillis
+ } más 0L
+                emitir (diferencia de tiempo)
+ startMillis = System.currentTimeMillis()
+ retraso ( 10L )
+ }
+ }
+    }
+ }
