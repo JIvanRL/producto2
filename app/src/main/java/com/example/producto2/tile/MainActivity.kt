@@ -1022,6 +1022,128 @@ fun Info(navController: NavController) {
         }
     }
 }
+//Revisar si funciona por separado
+@Composable
+fun PaginaOcho(navController: NavController) {
+    val viewModel: StopWatchViewModel = viewModel()
+    val timerState by viewModel.timerState.collectAsState()
+    val stopWatchText by viewModel.stopWatchText.collectAsState()
+
+    Scaffold(
+        timeText = {
+            TimeText(
+                timeTextStyle = TimeTextDefaults.timeTextStyle(
+                    fontSize = 17.sp,
+                    color = Color.Black // Color del texto del tiempo
+                )
+            )
+        },
+        vignette = {
+            Vignette(vignettePosition = VignettePosition.TopAndBottom)
+        }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.fondo),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                StopWatch(
+                    state = timerState,
+                    text = stopWatchText,
+                    onToggleRunning = viewModel::toggleIsRunning,
+                    onReset = viewModel::resetTimer,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Button(
+                        onClick = { navController.navigate("RutaSiete") },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+                    ) {
+                        Text("<", color = Color.Black)
+                    }
+                    Button(
+                        onClick = { navController.navigate("RutaNueve") },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+                    ) {
+                        Text(">", color = Color.Black)
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+private fun StopWatch(
+    state: TimerState,
+    text: String,
+    onToggleRunning: () -> Unit,
+    onReset: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = text,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = onToggleRunning,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Magenta,
+                    contentColor = Color.Black
+                )
+            ) {
+                Icon(
+                    imageVector = if (state == TimerState.RUNNING) {
+                        Icons.Default.Add
+                    } else {
+                        Icons.Default.PlayArrow
+                    },
+                    contentDescription = null,
+                    tint = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = onReset,
+                enabled = state != TimerState.RESET,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Magenta,
+                    contentColor = Color.Black
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color.Black
+                )
+            }
+        }
+    }
+}
 
 //Navegacion de rutas
 @Composable
