@@ -822,7 +822,11 @@ fun ViewContacto(navController: NavController, contactViewModel: ContactViewMode
                             tint = Color.White
                         )
                     }
-                    IconButton(onClick = { /*TODO*/ },
+                    IconButton(onClick = {
+                       // if(contacto > 0) {
+                           // contactViewModel.DeleteContact(nombre, numero)
+                       // }
+                    },
                         modifier = Modifier.size(20.dp)) {
                         Icon(
                             painter = painterResource(id = defaulDelete),

@@ -18,4 +18,9 @@ class ContactViewModel : ViewModel() {
     fun addContact(nombre: String, numero: String) {
         contactos.add(Contacto(nombre, numero))
     }
+
+    //Función para eliminar un conatcto
+    fun DeleteContact(){
+        //contactos.remove(ContactViewModel())
+    }
 }
