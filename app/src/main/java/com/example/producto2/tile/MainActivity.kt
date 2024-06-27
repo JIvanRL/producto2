@@ -8,6 +8,7 @@
 
 package com.example.producto2.tile
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -126,6 +129,7 @@ fun FondoConDegradadoRadial(showImage: Boolean = true) {
 }
 
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun Portada(navController: NavController) {
     val currentDate = LocalDate.now()
@@ -747,18 +751,25 @@ fun QuickSettingsScreen(navController: NavController) {
     }
 }
 // Función para agregar un nuevo contacto
-data class Contacto(val nombre: String, val numero: String)
 @Composable
-fun ViewContacto(navController: NavController) {
-    var contactos by remember { mutableStateOf(listOf<Contacto>()) }
+fun ViewContacto(navController: NavController, contactViewModel: ContactViewModel = viewModel()) {
+    // Obtener la lista de contactos desde el ViewModel
+    val contactos = contactViewModel.contactos
+
+    // Imágenes por defecto para los iconos
     val defaultImage = R.drawable.baseline_person_24
     val defaultEdit = R.drawable.baseline_edit_24
+    val defaulDelete = R.drawable.baseline_delete_24
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
 
+    // Crear una columna que ocupa todo el tamaño disponible
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
+        // Título de la pantalla
         Text("Contactos", style = MaterialTheme.typography.title1)
 
         // Botón para navegar a la pantalla de agregar contacto
@@ -770,13 +781,15 @@ fun ViewContacto(navController: NavController) {
             )
         }
 
-        // Lista de contactos
+        // Lista de contactos usando ScalingLazyColumn
         ScalingLazyColumn {
+            // Iterar sobre la lista de contactos y crear una fila para cada uno
             items(contactos) { contacto ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    // Imagen del contacto por defecto
                     Image(
                         painter = painterResource(id = defaultImage),
                         contentDescription = null,
@@ -784,68 +797,106 @@ fun ViewContacto(navController: NavController) {
                             .size(40.dp)
                             .padding(end = 8.dp)
                     )
-                    Column(modifier = Modifier.weight(1f)) {
+                    // Column para mostrar el nombre y número del contacto
+                    Column(modifier = Modifier.weight(1f)
+                        ) {
                         Text(
                             contacto.nombre,
                             style = MaterialTheme.typography.body1
                         )
-                        Text(
-                            contacto.numero,
-                            style = MaterialTheme.typography.body2
-                        )
+                        Column {
+                            Text(
+                                contacto.numero,
+                                style = MaterialTheme.typography.caption1,
+                            )
+                        }
+
                     }
-                    IconButton(onClick = { /*TODO*/ }) {
+                    // Botón de edición para cada contacto (aún no implementado)
+                    IconButton(onClick = { /*TODO*/ },
+                        modifier = Modifier.size(20.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = defaultEdit),
                             contentDescription = "Edit Contact",
                             tint = Color.White
                         )
                     }
+                    IconButton(onClick = { /*TODO*/ },
+                        modifier = Modifier.size(20.dp)) {
+                        Icon(
+                            painter = painterResource(id = defaulDelete),
+                            contentDescription = "Delete Contact",
+                            tint = Color.White
+                        )
+                    }
                 }
             }
+            item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
         }
     }
 }
 // Pantalla para agregar un contacto
 @Composable
-fun AddContactScreen(navController: NavController, onAddContact: (String, String) -> Unit) {
+fun AddContactScreen(navController: NavController, contactViewModel: ContactViewModel = viewModel()) {
+    // Variables de estado para almacenar los valores del nombre y el número
     var nombre by remember { mutableStateOf("") }
     var numero by remember { mutableStateOf("") }
 
     // Estado para controlar la visibilidad del AlertDialog
     var showDialog by remember { mutableStateOf(false) }
-
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
+    // Columna principal que contiene el formulario para agregar contactos
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 32.dp), // Ajusta el padding para separar del borde y centrar verticalmente
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize() // Ocupa todo el tamaño disponible
+            .padding(horizontal = 16.dp, vertical = 32.dp), // Padding para separar del borde y centrar verticalmente
+        verticalArrangement = Arrangement.Center, // Centrar verticalmente el contenido
+        horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente el contenido
     ) {
+        // Título de la pantalla
         Text("Agregar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp)) // Espacio adicional debajo del título
 
-        // Formulario para agregar contacto
+        // Columna que contiene el formulario para agregar un contacto
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth() // Ajusta al ancho máximo disponible
                 .verticalScroll(rememberScrollState()), // Agrega scroll vertical si es necesario
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp), // Espaciado vertical entre los elementos
+            horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente los elementos
         ) {
-            // Campos de entrada para nombre y número
+            // Campo de entrada para el nombre del contacto
             OutlinedTextField(
                 value = nombre,
-                onValueChange = { nombre = it },
+                onValueChange = { nombre = it }, // Actualiza el estado con el valor ingresado
                 label = { Text("Nombre") },
                 textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
+                modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
+                    //focusedBorderColor = Color.Blue, // Color del borde cuando está enfocado
+                    backgroundColor = Color.Transparent // Color de fondo del contenedor
+                )
             )
+
+            // Campo de entrada para el número del contacto
             OutlinedTextField(
                 value = numero,
-                onValueChange = { numero = it },
+                onValueChange = { numero = it }, // Actualiza el estado con el valor ingresado
                 label = { Text("Número") },
                 textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
+                modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
+                    focusedBorderColor = Color.Blue, // Color del borde cuando está enfocado
+                    backgroundColor = Color.Transparent // Color de fondo del contenedor
+                )
             )
 
             // Espacio adicional para separación visual
@@ -854,46 +905,61 @@ fun AddContactScreen(navController: NavController, onAddContact: (String, String
             // Botón para guardar el contacto
             Button(
                 onClick = {
+                    // Verifica si los campos no están vacíos
                     if (nombre.isNotBlank() && numero.isNotBlank()) {
-                        onAddContact(nombre, numero)
+                        // Agrega el contacto usando el ViewModel
+                        contactViewModel.addContact(nombre, numero)
+                        // Limpia los campos de entrada
                         nombre = ""
                         numero = ""
-                        navController.popBackStack() // Regresa a la pantalla anterior (ViewContacto)
+                        // Navega de regreso a la pantalla anterior (ViewContacto)
+                        navController.popBackStack()
                     } else {
                         // Muestra el AlertDialog si los campos están vacíos
                         showDialog = true
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.End) // Alinea el botón a la derecha
+                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
             ) {
                 Text("Guardar", color = Color.White)
+            }
+
+            // Botón para regresar a la pantalla anterior sin guardar
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.size(20.dp), // Tamaño del botón ajustable
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent), // Color del botón
+                shape = CircleShape // Forma del botón
+            ) {
+                // Imagen dentro del botón de regreso
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 1",
+                    modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
+                )
             }
         }
     }
 
-    // AlertDialog para mostrar mensaje de campos vacíos
+    // AlertDialog para mostrar mensaje de error cuando los campos están vacíos
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = {
-                showDialog = false
-            },
+            onDismissRequest = { showDialog = false }, // Dismiss el diálogo cuando se hace clic fuera de él
             title = {
-                Text(text = "Error")
+                Text(text = "Error", color = Color.Black)
             },
             text = {
-                Text(text = "Por favor ingresa nombre y número")
+                Text(text = "Por favor ingresa nombre y número", color = Color.Black)
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showDialog = false
-                    }
+                    onClick = { showDialog = false } // Cierra el diálogo al hacer clic en OK
                 ) {
                     Text("OK")
                 }
-            }
+            },
+            backgroundColor = Color.White, // Color de fondo del diálogo
+            contentColor = Color.Black // Color del contenido del diálogo
         )
     }
 }
@@ -930,7 +996,8 @@ fun Info(navController: NavController) {
         // Lista de información sobre Wear OS
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
             items(wearOSInfo) { info ->
@@ -941,6 +1008,13 @@ fun Info(navController: NavController) {
                     fontSize = 15.sp
                 )
             }
+
+            item { // Usar ButtonItem aquí
+                Regresar(
+                    icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 3",
+                    onClick = { navController.popBackStack()}
+                ) }
         }
     }
 }
@@ -949,6 +1023,7 @@ fun Info(navController: NavController) {
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
+    val contactViewModel: ContactViewModel = viewModel()
 
     NavHost(navController, startDestination = "RutaUno") {
         composable("RutaUno") { Portada(navController) }
@@ -957,18 +1032,11 @@ fun Navegacion() {
         composable("RutaCuatro") { Menu(navController) }
         composable("RutaCinco") { Calculadora(navController) }
         composable("RutaSeis") { QuickSettingsScreen(navController) }
-        composable("ViewContacto"){ViewContacto(navController)}
-        composable("RutaAgregarContacto") {
-            AddContactScreen(navController) { nombre, numero ->
-                navController.navigateUp() // Regresar a la pantalla anterior
-            }
-        }
-        composable("InfoRute"){Info(navController)}
+        composable("ViewContacto") { ViewContacto(navController, contactViewModel) }
+        composable("RutaAgregarContacto") { AddContactScreen(navController, contactViewModel) }
+        composable("InfoRute") { Info(navController) }
     }
 }
-
-
-
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
