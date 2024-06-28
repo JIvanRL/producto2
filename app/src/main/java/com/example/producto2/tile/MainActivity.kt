@@ -9,6 +9,7 @@
 package com.example.producto2.tile
 
 import android.annotation.SuppressLint
+import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,7 +36,13 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,19 +54,23 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
@@ -70,6 +81,9 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.TimeTextDefaults
+import androidx.wear.compose.material.Vignette
+import androidx.wear.compose.material.VignettePosition
 import com.example.producto2.R
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -561,6 +575,20 @@ fun Menu(navController: NavController) {
                     onClick = { navController.navigate("ViewContacto") }
                 )}
             item { // Usar ButtonItem aquí
+                Cronometro(
+                    icon = painterResource(id = R.drawable.cronometro),
+                    contentDescription = "Icono botón 3",
+                    text = "Cronometro",
+                    onClick = { navController.navigate("Cronometro") }
+                )}
+            item { // Usar ButtonItem aquí
+                Musica(
+                    icon = painterResource(id = R.drawable.reproductor),
+                    contentDescription = "Icono botón 3",
+                    text = "Musica",
+                    onClick = { navController.navigate("Musica") }
+                )}
+            item { // Usar ButtonItem aquí
                 Regresar(
                     icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
                     contentDescription = "Icono botón 3",
@@ -812,21 +840,21 @@ fun ViewContacto(navController: NavController, contactViewModel: ContactViewMode
                         }
 
                     }
-                    // Botón de edición para cada contacto (aún no implementado)
-                    IconButton(onClick = { /*TODO*/ },
-                        modifier = Modifier.size(20.dp)
+                    // Botón de edición para cada contacto
+                    IconButton(onClick = {
+                        // Navegar a la pantalla de edición pasando el nombre del contacto
+                        navController.navigate("EditContacto?contactName=${contacto.nombre}")
+                    },
+                        modifier = Modifier.size(20.dp) // Tamaño del botón
                     ) {
                         Icon(
                             painter = painterResource(id = defaultEdit),
-                            contentDescription = "Edit Contact",
+                            contentDescription = "Edit Contact", // Descripción del contenido para accesibilidad
                             tint = Color.White
                         )
                     }
-                    IconButton(onClick = {
-                       // if(contacto > 0) {
-                           // contactViewModel.DeleteContact(nombre, numero)
-                       // }
-                    },
+                    // Botón de eliminación para cada contacto
+                    IconButton(onClick = { contactViewModel.DeleteContact(contacto) },
                         modifier = Modifier.size(20.dp)) {
                         Icon(
                             painter = painterResource(id = defaulDelete),
@@ -967,6 +995,109 @@ fun AddContactScreen(navController: NavController, contactViewModel: ContactView
         )
     }
 }
+@Composable
+fun EditContactScreen(
+    navController: NavController,
+    contactViewModel: ContactViewModel = viewModel(),
+    contact: Contacto
+) {
+    var nombre by remember { mutableStateOf(contact.nombre) }
+    var numero by remember { mutableStateOf(contact.numero) }
+
+    // Estado para controlar la visibilidad del AlertDialog
+    var showDialog by remember { mutableStateOf(false) }
+
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Editar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    unfocusedBorderColor = Color.Magenta,
+                    focusedBorderColor = Color.Blue,
+                    backgroundColor = Color.Transparent
+                )
+            )
+
+            OutlinedTextField(
+                value = numero,
+                onValueChange = { numero = it },
+                label = { Text("Número") },
+                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    unfocusedBorderColor = Color.Magenta,
+                    focusedBorderColor = Color.Blue,
+                    backgroundColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (nombre.isNotBlank() && numero.isNotBlank()) {
+                        contactViewModel.updateContact(contact, nombre, numero)
+                        navController.popBackStack()
+                    } else {
+                        showDialog = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar", color = Color.White)
+            }
+
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.size(20.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                shape = CircleShape
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Icono botón 1",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = "Error", color = Color.Black) },
+            text = { Text(text = "Por favor ingresa nombre y número", color = Color.Black) },
+            confirmButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("OK")
+                }
+            },
+            backgroundColor = Color.White,
+            contentColor = Color.Black
+        )
+    }
+}
+
 
 //Info de la app
 @Composable
@@ -1028,13 +1159,14 @@ fun PaginaOcho(navController: NavController) {
     val viewModel: StopWatchViewModel = viewModel()
     val timerState by viewModel.timerState.collectAsState()
     val stopWatchText by viewModel.stopWatchText.collectAsState()
+    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
 
     Scaffold(
         timeText = {
             TimeText(
                 timeTextStyle = TimeTextDefaults.timeTextStyle(
                     fontSize = 17.sp,
-                    color = Color.Black // Color del texto del tiempo
+                    color = Color.White
                 )
             )
         },
@@ -1043,12 +1175,6 @@ fun PaginaOcho(navController: NavController) {
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -1061,29 +1187,25 @@ fun PaginaOcho(navController: NavController) {
                     onReset = viewModel::resetTimer,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Button(
-                        onClick = { navController.navigate("RutaSiete") },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                    ) {
-                        Text("<", color = Color.Black)
-                    }
-                    Button(
-                        onClick = { navController.navigate("RutaNueve") },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                    ) {
-                        Text(">", color = Color.Black)
-                    }
-                }
             }
         }
     }
+    Button(
+        onClick = { navController.popBackStack() },
+        modifier = Modifier
+            .size(40.dp) // Aumentado el tamaño del botón para que sea más fácil de tocar
+            .padding(16.dp), // Añadido un padding para que no esté pegado al borde de la pantalla
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+        shape = CircleShape
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+            contentDescription = "Icono botón 1",
+            modifier = Modifier.size(24.dp) // Aumentado el tamaño de la imagen para que sea más visible
+        )
+    }
 }
+
 @Composable
 private fun StopWatch(
     state: TimerState,
@@ -1102,7 +1224,7 @@ private fun StopWatch(
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            color = Color.Black
+            color = Color.White
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
@@ -1145,12 +1267,105 @@ private fun StopWatch(
     }
 }
 
-//Navegacion de rutas
+
+@Composable
+fun MusicScreen(navController: NavController) {
+    val context = LocalContext.current
+    var currentSongIndex by remember { mutableStateOf(0) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    val songs = listOf(
+        Song(R.drawable.austronauta, R.raw.beautiful, "Song 1"),
+        Song(R.drawable.austronauta, R.raw.no, "Song 2"),
+        //Song(R.drawable.austronauta, R.raw.musica3, "Song 3")
+    )
+
+    fun playSong() {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
+        mediaPlayer?.start()
+        isPlaying = true
+    }
+
+    fun pauseSong() {
+        mediaPlayer?.pause()
+        isPlaying = false
+    }
+
+    fun nextSong() {
+        currentSongIndex = (currentSongIndex + 1) % songs.size
+        playSong()
+    }
+
+    fun previousSong() {
+        currentSongIndex = if (currentSongIndex > 0) currentSongIndex - 1 else songs.size - 1
+        playSong()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        Image(
+            painter = painterResource(id = songs[currentSongIndex].backgroundResId),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = songs[currentSongIndex].title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(onClick = { previousSong() }) {
+                    Text(text = "Prev", color = Color.White)
+                }
+                Button(onClick = {
+                    if (isPlaying) {
+                        pauseSong()
+                    } else {
+                        playSong()
+                    }
+                }) {
+                    Text(text = if (isPlaying) "Pause" else "Play", color = Color.White)
+                }
+                Button(onClick = { nextSong() }) {
+                    Text(text = "Next", color = Color.White)
+                }
+            }
+        }
+    }
+}
+data class Song(val backgroundResId: Int, val audioResId: Int, val title: String)
+// Función que define la navegación de la aplicación
 @Composable
 fun Navegacion() {
-    val navController = rememberNavController()
-    val contactViewModel: ContactViewModel = viewModel()
+    val navController = rememberNavController() // Recordar el controlador de navegación
+    val contactViewModel: ContactViewModel = viewModel() // Instancia del ViewModel de contactos
 
+    // Definir el host de navegación con las rutas
     NavHost(navController, startDestination = "RutaUno") {
         composable("RutaUno") { Portada(navController) }
         composable("RutaDos") { ScreenApps(navController) }
@@ -1161,6 +1376,33 @@ fun Navegacion() {
         composable("ViewContacto") { ViewContacto(navController, contactViewModel) }
         composable("RutaAgregarContacto") { AddContactScreen(navController, contactViewModel) }
         composable("InfoRute") { Info(navController) }
+        composable("Cronometro") { PaginaOcho(navController) }
+        composable("Musica") { MusicScreen(navController) }
+        // Ruta para la pantalla de edición de contacto con argumento contactName
+        composable(
+            route = "EditContacto?contactName={contactName}", // Define la ruta para la pantalla de edición de contacto, con un argumento de consulta llamado 'contactName'
+            arguments = listOf(navArgument("contactName") { type = NavType.StringType }) // Declara que 'contactName' es un argumento de tipo String que se pasa a la pantalla
+        ) { backStackEntry ->  // 'backStackEntry' es un objeto que representa la entrada actual en la pila de navegación
+            // Obtener el nombre del contacto desde los argumentos de la ruta actual
+            val contactName = backStackEntry.arguments?.getString("contactName") ?: ""
+            // La función getString("contactName") extrae el valor del argumento 'contactName' que se pasó a la ruta.
+            // Si no hay un argumento 'contactName', el operador Elvis (?:) proporciona una cadena vacía como valor predeterminado.
+
+            // Buscar el contacto en la lista de contactos del ViewModel usando el nombre extraído de los argumentos
+            val contact = contactViewModel.contactos.find { it.nombre == contactName }
+            // La función find busca en la lista de contactos del ViewModel el primer contacto cuyo nombre coincida con 'contactName'.
+            // La condición es que 'it.nombre' (el nombre del contacto actual en la lista) debe ser igual a 'contactName'.
+
+            if (contact != null) {
+                // Si se encuentra un contacto con el nombre especificado, navega a la pantalla de edición del contacto
+                EditContactScreen(navController, contactViewModel, contact)
+                // Llama a la pantalla de edición y pasa el contacto encontrado a esta pantalla para que pueda ser editado.
+            } else {
+                // Manejo del caso en que el contacto no es encontrado
+                // Puedes agregar lógica para manejar el caso en que no se encuentra el contacto, como mostrar un mensaje de error.
+                // Ejemplo: mostrar un mensaje de error o redirigir al usuario a una pantalla diferente.
+            }
+        }
     }
 }
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
