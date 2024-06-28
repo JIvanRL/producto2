@@ -5,6 +5,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 // Definición del modelo de datos para un contacto
 data class Contacto(val nombre: String, val numero: String)
@@ -20,64 +35,64 @@ class ContactViewModel : ViewModel() {
     }
 
     //Función para eliminar un conatcto
-    fun DeleteContact(){
-        //contactos.remove(ContactViewModel())
+    fun DeleteContact(contacto: Contacto){
+        contactos.remove(contacto)
     }
 }
- clase de enumeración TimerState { EN EJECUCIÓN , EN PAUSA , RESET }
+enum class TimerState { RUNNING, PAUSED, RESET }
 
- clase StopWatchViewModel: VerModel() {
+class StopWatchViewModel : ViewModel() {
 
- valor privado _elapsedTime = MutableStateFlow ( 0L )
- valor privado _timerState = MutableStateFlow ( TimerState.RESET )
- val timerState = _timerState . como flujo de estado ()
+    private val _elapsedTime = MutableStateFlow(0L)
+    private val _timerState = MutableStateFlow(TimerState.RESET)
+    val timerState = _timerState.asStateFlow()
 
- formateador de valor privado = DateTimeFormatter.ofPattern( "HH:mm:ss:SSS" )
- val stopWatchText = _tiempo transcurrido
-        . mapa { milis ->
-            LocalTime.ofNanoOfDay(millis * 1_000_000 ).format( formateador )
- }
-        . estado en (
- verModelScope ,
- CompartiendoIniciado. Mientras está suscrito ( 5000 ),
- "00:00:00:000"
+    private val formatter = DateTimeFormatter.ofPattern("HH:mm:ss:SSS")
+    val stopWatchText = _elapsedTime
+        .map { millis ->
+            LocalTime.ofNanoOfDay(millis * 1_000_000).format(formatter)
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            "00:00:00:000"
         )
 
- en eso {
- _timerState
-            . flatMapLatest { estado del temporizador ->
-                getTimerFlow( isRunning = timerState == TimerState. EJECUTANDO )
- }
-            . en cada { diferenciatiempo ->
-                _tiempo transcurrido . actualizar {it + timeDiff }
- }
-            . lanzamiento en ( viewModelScope )
- }
+    init {
+        _timerState
+            .flatMapLatest { timerState ->
+                getTimerFlow(isRunning = timerState == TimerState.RUNNING)
+            }
+            .onEach { timeDiff ->
+                _elapsedTime.update { it + timeDiff }
+            }
+            .launchIn(viewModelScope)
+    }
 
- divertido toggleIsRunning () {
- cuando ( timerState . valor ) {
- Estado del temporizador. EN EJECUCIÓN -> _timerState . actualizar { TimerState. PAUSADO }
-            Estado del temporizador. PAUSADO , Estado del temporizador. RESTABLECER -> _timerState . actualizar { TimerState. CORRER }
+    fun toggleIsRunning() {
+        when (timerState.value) {
+            TimerState.RUNNING -> _timerState.update { TimerState.PAUSED }
+            TimerState.PAUSED, TimerState.RESET -> _timerState.update { TimerState.RUNNING }
         }
- }
-
- divertido resetTimer () {
- _timerState . actualizar { TimerState. REINICIAR }
-        _tiempo transcurrido . actualizar { 0L }
     }
 
- diversión privada getTimerFlow (isRunning: booleano): Flow<Long> {
- flujo de retorno {
+    fun resetTimer() {
+        _timerState.update { TimerState.RESET }
+        _elapsedTime.update { 0L }
+    }
+
+    private fun getTimerFlow(isRunning: Boolean): Flow<Long> {
+        return flow {
             var startMillis = System.currentTimeMillis()
- mientras (está corriendo) {
- val currentMillis = System.currentTimeMillis()
- val timeDiff = if (currentMillis > startMillis) {
- actualMillis - inicioMillis
- } más 0L
-                emitir (diferencia de tiempo)
- startMillis = System.currentTimeMillis()
- retraso ( 10L )
- }
- }
+            while (isRunning) {
+                val currentMillis = System.currentTimeMillis()
+                val timeDiff = if (currentMillis > startMillis) {
+                    currentMillis - startMillis
+                } else 0L
+                emit(timeDiff)
+                startMillis = System.currentTimeMillis()
+                delay(10L)
+            }
+        }
     }
- }
+}

@@ -9,6 +9,7 @@
 package com.example.producto2.tile
 
 import android.annotation.SuppressLint
+import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,7 +36,13 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,11 +54,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -70,6 +79,9 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.TimeTextDefaults
+import androidx.wear.compose.material.Vignette
+import androidx.wear.compose.material.VignettePosition
 import com.example.producto2.R
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -561,6 +573,20 @@ fun Menu(navController: NavController) {
                     onClick = { navController.navigate("ViewContacto") }
                 )}
             item { // Usar ButtonItem aquí
+                Cronometro(
+                    icon = painterResource(id = R.drawable.cronometro),
+                    contentDescription = "Icono botón 3",
+                    text = "Cronometro",
+                    onClick = { navController.navigate("Cronometro") }
+                )}
+            item { // Usar ButtonItem aquí
+                Musica(
+                    icon = painterResource(id = R.drawable.nota),
+                    contentDescription = "Icono botón 3",
+                    text = "Musica",
+                    onClick = { navController.navigate("Musica") }
+                )}
+            item { // Usar ButtonItem aquí
                 Regresar(
                     icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
                     contentDescription = "Icono botón 3",
@@ -1043,12 +1069,6 @@ fun PaginaOcho(navController: NavController) {
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -1061,27 +1081,23 @@ fun PaginaOcho(navController: NavController) {
                     onReset = viewModel::resetTimer,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Button(
-                        onClick = { navController.navigate("RutaSiete") },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                    ) {
-                        Text("<", color = Color.Black)
-                    }
-                    Button(
-                        onClick = { navController.navigate("RutaNueve") },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                    ) {
-                        Text(">", color = Color.Black)
-                    }
-                }
+
             }
         }
+    }
+    // Botón para regresar a la pantalla anterior sin guardar
+    Button(
+        onClick = { navController.popBackStack() },
+        modifier = Modifier.size(20.dp), // Tamaño del botón ajustable
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent), // Color del botón
+        shape = CircleShape // Forma del botón
+    ) {
+        // Imagen dentro del botón de regreso
+        Image(
+            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+            contentDescription = "Icono botón 1",
+            modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
+        )
     }
 }
 @Composable
@@ -1145,6 +1161,97 @@ private fun StopWatch(
     }
 }
 
+@Composable
+fun MusicScreen(navController: NavController) {
+    val context = LocalContext.current
+    var currentSongIndex by remember { mutableStateOf(0) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    val songs = listOf(
+        Song(R.drawable.austronauta, R.raw.beatiful, "Song 1"),
+        Song(R.drawable.austronauta, R.raw.bangarang, "Song 2"),
+        //Song(R.drawable.austronauta, R.raw.musica3, "Song 3")
+    )
+
+    fun playSong() {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
+        mediaPlayer?.start()
+        isPlaying = true
+    }
+
+    fun pauseSong() {
+        mediaPlayer?.pause()
+        isPlaying = false
+    }
+
+    fun nextSong() {
+        currentSongIndex = (currentSongIndex + 1) % songs.size
+        playSong()
+    }
+
+    fun previousSong() {
+        currentSongIndex = if (currentSongIndex > 0) currentSongIndex - 1 else songs.size - 1
+        playSong()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        Image(
+            painter = painterResource(id = songs[currentSongIndex].backgroundResId),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = songs[currentSongIndex].title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(onClick = { previousSong() }) {
+                    Text(text = "Prev", color = Color.White)
+                }
+                Button(onClick = {
+                    if (isPlaying) {
+                        pauseSong()
+                    } else {
+                        playSong()
+                    }
+                }) {
+                    Text(text = if (isPlaying) "Pause" else "Play", color = Color.White)
+                }
+                Button(onClick = { nextSong() }) {
+                    Text(text = "Next", color = Color.White)
+                }
+            }
+        }
+    }
+}
+data class Song(val backgroundResId: Int, val audioResId: Int, val title: String)
 //Navegacion de rutas
 @Composable
 fun Navegacion() {
@@ -1161,6 +1268,8 @@ fun Navegacion() {
         composable("ViewContacto") { ViewContacto(navController, contactViewModel) }
         composable("RutaAgregarContacto") { AddContactScreen(navController, contactViewModel) }
         composable("InfoRute") { Info(navController) }
+        composable("Cronometro") { PaginaOcho(navController)}
+        composable("Musica"){MusicScreen(navController)}
     }
 }
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
