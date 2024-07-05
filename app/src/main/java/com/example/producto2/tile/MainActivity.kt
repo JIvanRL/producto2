@@ -1001,31 +1001,37 @@ fun EditContactScreen(
     contactViewModel: ContactViewModel = viewModel(),
     contact: Contacto
 ) {
+    // Declaración de variables de estado para el nombre y número del contacto
     var nombre by remember { mutableStateOf(contact.nombre) }
     var numero by remember { mutableStateOf(contact.numero) }
 
     // Estado para controlar la visibilidad del AlertDialog
     var showDialog by remember { mutableStateOf(false) }
 
+    // Componente personalizado que muestra un fondo con degradado radial
     FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
 
+    // Columna principal que contiene los elementos de la pantalla
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()  // Ocupa todo el tamaño disponible en el padre
+            .padding(horizontal = 16.dp, vertical = 32.dp),  // Espaciado horizontal y vertical
+        verticalArrangement = Arrangement.Center,  // Centrado vertical de los elementos
+        horizontalAlignment = Alignment.CenterHorizontally  // Centrado horizontal de los elementos
     ) {
+        // Título de la pantalla
         Text("Editar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))  // Espaciador vertical
 
+        // Columna para los campos de texto editables
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()  // Ocupa todo el ancho disponible
+                .verticalScroll(rememberScrollState()),  // Permite scroll vertical
+            verticalArrangement = Arrangement.spacedBy(8.dp),  // Espacio vertical entre los elementos
+            horizontalAlignment = Alignment.CenterHorizontally  // Centrado horizontal de los elementos
         ) {
+            // Campo de texto editable para el nombre
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -1039,6 +1045,7 @@ fun EditContactScreen(
                 )
             )
 
+            // Campo de texto editable para el número
             OutlinedTextField(
                 value = numero,
                 onValueChange = { numero = it },
@@ -1052,8 +1059,9 @@ fun EditContactScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))  // Espaciador vertical
 
+            // Botón para guardar los cambios del contacto
             Button(
                 onClick = {
                     if (nombre.isNotBlank() && numero.isNotBlank()) {
@@ -1063,37 +1071,40 @@ fun EditContactScreen(
                         showDialog = true
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()  // Ocupa todo el ancho disponible
             ) {
                 Text("Guardar", color = Color.White)
             }
 
+            // Botón para navegar hacia atrás en la pantalla
             Button(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier.size(20.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                shape = CircleShape
+                modifier = Modifier.size(20.dp),  // Tamaño específico para el botón
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),  // Color de fondo transparente
+                shape = CircleShape  // Forma circular para el botón
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
-                    contentDescription = "Icono botón 1",
-                    modifier = Modifier.size(20.dp)
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),  // Ícono de flecha hacia atrás
+                    contentDescription = "Icono botón 1",  // Descripción del contenido para accesibilidad
+                    modifier = Modifier.size(20.dp)  // Tamaño específico para el ícono
                 )
             }
         }
     }
+
+    // Diálogo de alerta que se muestra si showDialog es true
     if (showDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = "Error", color = Color.Black) },
-            text = { Text(text = "Por favor ingresa nombre y número", color = Color.Black) },
+            onDismissRequest = { showDialog = false },  // Cierra el diálogo al hacer clic fuera de él
+            title = { Text(text = "Error", color = Color.Black) },  // Título del diálogo de alerta
+            text = { Text(text = "Por favor ingresa nombre y número", color = Color.Black) },  // Mensaje del diálogo de alerta
             confirmButton = {
                 Button(onClick = { showDialog = false }) {
-                    Text("OK")
+                    Text("OK")  // Botón de confirmación del diálogo
                 }
             },
-            backgroundColor = Color.White,
-            contentColor = Color.Black
+            backgroundColor = Color.White,  // Color de fondo del diálogo
+            contentColor = Color.Black  // Color del contenido del diálogo
         )
     }
 }
@@ -1234,7 +1245,7 @@ private fun StopWatch(
             Button(
                 onClick = onToggleRunning,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Magenta,
+                    backgroundColor = Color.Gray,
                     contentColor = Color.Black
                 )
             ) {
