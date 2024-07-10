@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.IconButton
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,7 +63,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -879,122 +881,153 @@ fun AddContactScreen(navController: NavController, contactViewModel: ContactView
     // Variables de estado para almacenar los valores del nombre y el número
     var nombre by remember { mutableStateOf("") }
     var numero by remember { mutableStateOf("") }
-
-    // Estado para controlar la visibilidad del AlertDialog
+    // Estado para controlar la visibilidad de la notificación temporal
     var showDialog by remember { mutableStateOf(false) }
-    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
-    // Columna principal que contiene el formulario para agregar contactos
-    Column(
-        modifier = Modifier
-            .fillMaxSize() // Ocupa todo el tamaño disponible
-            .padding(horizontal = 16.dp, vertical = 32.dp), // Padding para separar del borde y centrar verticalmente
-        verticalArrangement = Arrangement.Center, // Centrar verticalmente el contenido
-        horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente el contenido
-    ) {
-        // Título de la pantalla
-        Text("Agregar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
-        Spacer(modifier = Modifier.height(16.dp)) // Espacio adicional debajo del título
 
-        // Columna que contiene el formulario para agregar un contacto
-        Column(
-            modifier = Modifier
-                .fillMaxWidth() // Ajusta al ancho máximo disponible
-                .verticalScroll(rememberScrollState()), // Agrega scroll vertical si es necesario
-            verticalArrangement = Arrangement.spacedBy(8.dp), // Espaciado vertical entre los elementos
-            horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente los elementos
-        ) {
-            // Campo de entrada para el nombre del contacto
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it }, // Actualiza el estado con el valor ingresado
-                label = { Text("Nombre") },
-                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
-                    //focusedBorderColor = Color.Blue, // Color del borde cuando está enfocado
-                    backgroundColor = Color.Transparent // Color de fondo del contenedor
-                )
-            )
-
-            // Campo de entrada para el número del contacto
-            OutlinedTextField(
-                value = numero,
-                onValueChange = { numero = it }, // Actualiza el estado con el valor ingresado
-                label = { Text("Número") },
-                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
-                    focusedBorderColor = Color.Blue, // Color del borde cuando está enfocado
-                    backgroundColor = Color.Transparent // Color de fondo del contenedor
-                )
-            )
-
-            // Espacio adicional para separación visual
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón para guardar el contacto
-            Button(
-                onClick = {
-                    // Verifica si los campos no están vacíos
-                    if (nombre.isNotBlank() && numero.isNotBlank()) {
-                        // Agrega el contacto usando el ViewModel
-                        contactViewModel.addContact(nombre, numero)
-                        // Limpia los campos de entrada
-                        nombre = ""
-                        numero = ""
-                        // Navega de regreso a la pantalla anterior (ViewContacto)
-                        navController.popBackStack()
-                    } else {
-                        // Muestra el AlertDialog si los campos están vacíos
-                        showDialog = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth() // Ajusta al ancho máximo disponible
-            ) {
-                Text("Guardar", color = Color.White)
-            }
-
-            // Botón para regresar a la pantalla anterior sin guardar
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.size(20.dp), // Tamaño del botón ajustable
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent), // Color del botón
-                shape = CircleShape // Forma del botón
-            ) {
-                // Imagen dentro del botón de regreso
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
-                    contentDescription = "Icono botón 1",
-                    modifier = Modifier.size(20.dp) // Tamaño de la imagen ajustable
-                )
-            }
+    // Desactiva la notificación después de 2 segundos si está activa
+    if (showDialog) {
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(2000) // Tiempo en milisegundos (2 segundos)
+            showDialog = false
         }
     }
 
-    // AlertDialog para mostrar mensaje de error cuando los campos están vacíos
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false }, // Dismiss el diálogo cuando se hace clic fuera de él
-            title = {
-                Text(text = "Error", color = Color.Black)
-            },
-            text = {
-                Text(text = "Por favor ingresa nombre y número", color = Color.Black)
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showDialog = false } // Cierra el diálogo al hacer clic en OK
+    Scaffold(
+        timeText = {
+            TimeText() // Muestra la hora en la parte superior
+        },
+        vignette = {
+            Vignette(vignettePosition = VignettePosition.TopAndBottom) // Añade viñetas en la parte superior e inferior
+        }
+    ) {
+        Spacer(modifier = Modifier.height(8.dp))
+        FondoConDegradadoRadial(showImage = true) // Aplica el fondo con degradado radial
+
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Columna principal que contiene el formulario para agregar contactos
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp), // Padding para separar del borde
+                verticalArrangement = Arrangement.Center, // Centrar verticalmente el contenido
+                horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente el contenido
+            ) {
+                // Título de la pantalla
+                Text("Agregar Contacto", style = MaterialTheme.typography.title1, color = Color.White, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(16.dp)) // Espacio adicional debajo del título
+
+                // Columna que contiene el formulario para agregar un contacto
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()), // Agrega scroll vertical si es necesario
+                    verticalArrangement = Arrangement.spacedBy(8.dp), // Espaciado vertical entre los elementos
+                    horizontalAlignment = Alignment.CenterHorizontally // Centrar horizontalmente los elementos
                 ) {
-                    Text("OK")
+                    // Campo de entrada para el nombre del contacto
+                    OutlinedTextField(
+                        value = nombre,
+                        onValueChange = { nombre = it }, // Actualiza el estado con el valor ingresado
+                        label = { Text("Nombre") },
+                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                        modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
+                            backgroundColor = Color.Transparent // Color de fondo del contenedor
+                        )
+                    )
+
+                    // Campo de entrada para el número del contacto
+                    OutlinedTextField(
+                        value = numero,
+                        onValueChange = { numero = it }, // Actualiza el estado con el valor ingresado
+                        label = { Text("Número") },
+                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                        modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            unfocusedBorderColor = Color.Magenta, // Color del borde cuando no está enfocado
+                            focusedBorderColor = Color.Blue, // Color del borde cuando está enfocado
+                            backgroundColor = Color.Transparent // Color de fondo del contenedor
+                        )
+                    )
+
+                    // Espacio adicional para separación visual
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Botón para guardar el contacto
+                    Button(
+                        onClick = {
+                            // Verifica si los campos no están vacíos
+                            if (nombre.isNotBlank() && numero.isNotBlank()) {
+                                // Agrega el contacto usando el ViewModel
+                                contactViewModel.addContact(nombre, numero)
+                                // Limpia los campos de entrada
+                                nombre = ""
+                                numero = ""
+                                // Navega de regreso a la pantalla anterior (ViewContacto)
+                                navController.popBackStack()
+                            } else {
+                                // Muestra la notificación temporal si los campos están vacíos
+                                showDialog = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(), // Ajusta al ancho máximo disponible
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color.Gray.copy(alpha = 0.5f), // Fondo gris y transparente
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Guardar")
+                    }
+
+                    // Botón para regresar a la pantalla anterior sin guardar
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color.Transparent, // Fondo gris y transparente
+                            contentColor = Color.White
+                        ),
+                        shape = CircleShape
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                            contentDescription = "Icono botón 1",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
-            },
-            backgroundColor = Color.White, // Color de fondo del diálogo
-            contentColor = Color.Black // Color del contenido del diálogo
-        )
+            }
+
+            // Notificación temporal para mostrar mensaje de error cuando los campos están vacíos
+            if (showDialog) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(bottom = 10.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.80f),
+                            shape = RoundedCornerShape(50.dp)
+                        )
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Por favor ingresa nombre y número",
+                        color = Color.White,
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Center, // Centra el texto
+                        modifier = Modifier.fillMaxWidth() // Para que el texto ocupe el ancho del contenedor
+                    )
+                }
+            }
+        }
     }
 }
+
+
 @Composable
 fun EditContactScreen(
     navController: NavController,
@@ -1005,110 +1038,101 @@ fun EditContactScreen(
     var nombre by remember { mutableStateOf(contact.nombre) }
     var numero by remember { mutableStateOf(contact.numero) }
 
-    // Estado para controlar la visibilidad del AlertDialog
-    var showDialog by remember { mutableStateOf(false) }
-
-    // Componente personalizado que muestra un fondo con degradado radial
-    FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
-
-    // Columna principal que contiene los elementos de la pantalla
-    Column(
-        modifier = Modifier
-            .fillMaxSize()  // Ocupa todo el tamaño disponible en el padre
-            .padding(horizontal = 16.dp, vertical = 32.dp),  // Espaciado horizontal y vertical
-        verticalArrangement = Arrangement.Center,  // Centrado vertical de los elementos
-        horizontalAlignment = Alignment.CenterHorizontally  // Centrado horizontal de los elementos
+    Scaffold(
+        timeText = {
+            TimeText() // Muestra la hora en la parte superior
+        },
+        vignette = {
+            Vignette(vignettePosition = VignettePosition.TopAndBottom) // Añade viñetas en la parte superior e inferior
+        }
     ) {
-        // Título de la pantalla
-        Text("Editar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
-        Spacer(modifier = Modifier.height(16.dp))  // Espaciador vertical
+        // Componente personalizado que muestra un fondo con degradado radial
+        FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
 
-        // Columna para los campos de texto editables
+        // Columna principal que contiene los elementos de la pantalla
         Column(
             modifier = Modifier
-                .fillMaxWidth()  // Ocupa todo el ancho disponible
-                .verticalScroll(rememberScrollState()),  // Permite scroll vertical
-            verticalArrangement = Arrangement.spacedBy(8.dp),  // Espacio vertical entre los elementos
+                .fillMaxSize()  // Ocupa todo el tamaño disponible en el padre
+                .padding(horizontal = 16.dp, vertical = 32.dp),  // Espaciado horizontal y vertical
+            verticalArrangement = Arrangement.Center,  // Centrado vertical de los elementos
             horizontalAlignment = Alignment.CenterHorizontally  // Centrado horizontal de los elementos
         ) {
-            // Campo de texto editable para el nombre
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre") },
-                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Magenta,
-                    focusedBorderColor = Color.Blue,
-                    backgroundColor = Color.Transparent
-                )
-            )
-
-            // Campo de texto editable para el número
-            OutlinedTextField(
-                value = numero,
-                onValueChange = { numero = it },
-                label = { Text("Número") },
-                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Magenta,
-                    focusedBorderColor = Color.Blue,
-                    backgroundColor = Color.Transparent
-                )
-            )
-
+            // Título de la pantalla
+            Text("Editar Contacto", style = MaterialTheme.typography.title1, color = Color.White)
             Spacer(modifier = Modifier.height(16.dp))  // Espaciador vertical
 
-            // Botón para guardar los cambios del contacto
-            Button(
-                onClick = {
-                    if (nombre.isNotBlank() && numero.isNotBlank()) {
-                        contactViewModel.updateContact(contact, nombre, numero)
-                        navController.popBackStack()
-                    } else {
-                        showDialog = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()  // Ocupa todo el ancho disponible
+            // Columna para los campos de texto editables
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()  // Ocupa todo el ancho disponible
+                    .verticalScroll(rememberScrollState()),  // Permite scroll vertical
+                verticalArrangement = Arrangement.spacedBy(8.dp),  // Espacio vertical entre los elementos
+                horizontalAlignment = Alignment.CenterHorizontally  // Centrado horizontal de los elementos
             ) {
-                Text("Guardar", color = Color.White)
-            }
-
-            // Botón para navegar hacia atrás en la pantalla
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.size(20.dp),  // Tamaño específico para el botón
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),  // Color de fondo transparente
-                shape = CircleShape  // Forma circular para el botón
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),  // Ícono de flecha hacia atrás
-                    contentDescription = "Icono botón 1",  // Descripción del contenido para accesibilidad
-                    modifier = Modifier.size(20.dp)  // Tamaño específico para el ícono
+                // Campo de texto editable para el nombre
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        unfocusedBorderColor = Color.Magenta,
+                        focusedBorderColor = Color.Blue,
+                        backgroundColor = Color.Transparent
+                    )
                 )
+
+                // Campo de texto editable para el número
+                OutlinedTextField(
+                    value = numero,
+                    onValueChange = { numero = it },
+                    label = { Text("Número") },
+                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        unfocusedBorderColor = Color.Magenta,
+                        focusedBorderColor = Color.Blue,
+                        backgroundColor = Color.Transparent
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))  // Espaciador vertical
+
+                // Botón para guardar los cambios del contacto
+                Button(
+                    onClick = {
+                        if (nombre.isNotBlank() && numero.isNotBlank()) {
+                            contactViewModel.updateContact(contact, nombre, numero)
+                            navController.popBackStack()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),  // Ocupa todo el ancho disponible
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Gray.copy(alpha = 0.5f), // Fondo gris y transparente
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Guardar")
+                }
+
+                // Botón para navegar hacia atrás en la pantalla
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.size(40.dp),  // Tamaño específico para el botón
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),  // Color de fondo transparente
+                    shape = CircleShape  // Forma circular para el botón
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_ios_24),  // Ícono de flecha hacia atrás
+                        contentDescription = "Icono botón 1",  // Descripción del contenido para accesibilidad
+                        modifier = Modifier.size(20.dp)  // Tamaño específico para el ícono
+                    )
+                }
             }
         }
     }
-
-    // Diálogo de alerta que se muestra si showDialog es true
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },  // Cierra el diálogo al hacer clic fuera de él
-            title = { Text(text = "Error", color = Color.Black) },  // Título del diálogo de alerta
-            text = { Text(text = "Por favor ingresa nombre y número", color = Color.Black) },  // Mensaje del diálogo de alerta
-            confirmButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("OK")  // Botón de confirmación del diálogo
-                }
-            },
-            backgroundColor = Color.White,  // Color de fondo del diálogo
-            contentColor = Color.Black  // Color del contenido del diálogo
-        )
-    }
 }
-
 
 //Info de la app
 @Composable
@@ -1245,8 +1269,8 @@ private fun StopWatch(
             Button(
                 onClick = onToggleRunning,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Gray,
-                    contentColor = Color.Black
+                    backgroundColor = Color.Gray.copy(alpha = 0.5f),
+                    contentColor = Color.White
                 )
             ) {
                 Icon(
@@ -1256,7 +1280,7 @@ private fun StopWatch(
                         Icons.Default.PlayArrow
                     },
                     contentDescription = null,
-                    tint = Color.Black
+                    tint = Color.White
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -1264,37 +1288,39 @@ private fun StopWatch(
                 onClick = onReset,
                 enabled = state != TimerState.RESET,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Magenta,
-                    contentColor = Color.Black
+                    backgroundColor = Color.Gray.copy(alpha = 0.5f),
+                    contentColor = Color.White
                 )
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
-                    tint = Color.Black
+                    tint = Color.White
                 )
             }
         }
     }
 }
 
-
+//Fuuncion para la musica
 @Composable
 fun MusicScreen(navController: NavController) {
     val context = LocalContext.current
     var currentSongIndex by remember { mutableStateOf(0) }
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var fondo =  FondoConDegradadoRadial(showImage = true) // No muestra la imagen en ScreenApps
 
     val songs = listOf(
-        Song(R.drawable.austronauta, R.raw.beautiful, "Song 1"),
-        Song(R.drawable.austronauta, R.raw.no, "Song 2"),
-        //Song(R.drawable.austronauta, R.raw.musica3, "Song 3")
+        Song(R.drawable.austronauta, R.raw.beautiful, "Beautiful Things"),
+        Song(R.drawable.austronauta, R.raw.no, "No que eras fan")
+        // Song(R.drawable.austronauta, R.raw.musica3, "Song 3")
     )
 
     fun playSong() {
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
+        }
         mediaPlayer?.start()
         isPlaying = true
     }
@@ -1305,12 +1331,16 @@ fun MusicScreen(navController: NavController) {
     }
 
     fun nextSong() {
+        mediaPlayer?.release()
         currentSongIndex = (currentSongIndex + 1) % songs.size
+        mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
         playSong()
     }
 
     fun previousSong() {
+        mediaPlayer?.release()
         currentSongIndex = if (currentSongIndex > 0) currentSongIndex - 1 else songs.size - 1
+        mediaPlayer = MediaPlayer.create(context, songs[currentSongIndex].audioResId)
         playSong()
     }
 
@@ -1350,25 +1380,56 @@ fun MusicScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Button(onClick = { previousSong() }) {
-                    Text(text = "Prev", color = Color.White)
-                }
-                Button(onClick = {
-                    if (isPlaying) {
-                        pauseSong()
-                    } else {
-                        playSong()
-                    }
-                }) {
-                    Text(text = if (isPlaying) "Pause" else "Play", color = Color.White)
-                }
-                Button(onClick = { nextSong() }) {
-                    Text(text = "Next", color = Color.White)
-                }
+                TransparentButton(onClick = { previousSong() }, iconResId = R.drawable.ic_previous)
+                TransparentButton(
+                    onClick = {
+                        if (isPlaying) {
+                            pauseSong()
+                        } else {
+                            playSong()
+                        }
+                    },
+                    iconResId = if (isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
+                )
+                TransparentButton(onClick = { nextSong() }, iconResId = R.drawable.ic_next)
             }
         }
     }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Regresar(
+                icon = painterResource(id = R.drawable.baseline_arrow_back_ios_24),
+                contentDescription = "Icono botón 3",
+                onClick = { navController.popBackStack() }
+            )
+        }
+    }
 }
+
+@Composable
+fun TransparentButton(onClick: () -> Unit, iconResId: Int, iconColor: Color = Color.White) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(8.dp)
+            .background(Color.Transparent),
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+    ) {
+        Image(
+            painter = painterResource(id = iconResId),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(iconColor),  // Aplica el color al ícono
+            modifier = Modifier.size(24.dp)  // Ajusta el tamaño según sea necesario
+        )
+    }
+}
+
+
 data class Song(val backgroundResId: Int, val audioResId: Int, val title: String)
 // Función que define la navegación de la aplicación
 @Composable
